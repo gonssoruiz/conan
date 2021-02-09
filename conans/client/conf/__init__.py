@@ -457,6 +457,14 @@ class ConanClientConfigParser(ConfigParser, object):
             return None
 
     @property
+    def remote_cache(self):
+        try:
+            remote_cache = self.get_item("storage.remote_cache")
+            return remote_cache
+        except ConanException:
+            return None
+
+    @property
     def scm_to_conandata(self):
         try:
             scm_to_conandata = get_env("CONAN_SCM_TO_CONANDATA")

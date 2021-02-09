@@ -15,8 +15,9 @@ from conans.util.sha import sha256 as sha256_sum
 class CachedFileDownloader(object):
     _thread_locks = {}  # Needs to be shared among all instances
 
-    def __init__(self, cache_folder, file_downloader, user_download=False):
+    def __init__(self, cache_folder="", cache_remote="", file_downloader, user_download=False):
         self._cache_folder = cache_folder
+        self._cache_remote = cache_remote
         self._file_downloader = file_downloader
         self._user_download = user_download
 

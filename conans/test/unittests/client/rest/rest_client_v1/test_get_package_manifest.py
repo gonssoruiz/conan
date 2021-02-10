@@ -19,9 +19,9 @@ class GetPackageManifestTestCase(unittest.TestCase):
         returned_files = {CONAN_MANIFEST: b"not expected content"}
 
         with patch.object(RestV1Methods, "_get_file_to_url_dict", return_value=None), \
-             patch.object(RestV1Methods, "_download_files", return_value=returned_files):
+                patch.object(RestV1Methods, "_download_files", return_value=returned_files):
 
-            config = namedtuple("ConfigMock", "download_cache")(None)
+            config = namedtuple("ConfigMock", "use_download_cache")(None)
             v1 = RestV1Methods(remote_url, token=None, custom_headers=None, output=None,
                                requester=None, config=config, verify_ssl=None)
             with self.assertRaises(ConanException) as exc:

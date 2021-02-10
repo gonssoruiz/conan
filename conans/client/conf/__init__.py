@@ -449,18 +449,18 @@ class ConanClientConfigParser(ConfigParser, object):
             raise ConanException("Specify a numeric parameter for 'parallel_download'")
 
     @property
-    def download_cache(self):
+    def use_download_cache(self):
         try:
-            download_cache = self.get_item("storage.download_cache")
-            return download_cache
+            use_download_cache = self.get_item("storage.use_download_cache")
+            return use_download_cache
         except ConanException:
             return None
 
     @property
-    def remote_cache(self):
+    def remote_download_cache(self):
         try:
-            remote_cache = self.get_item("storage.remote_cache")
-            return remote_cache
+            remote_download_cache = self.get_item("storage.remote_download_cache")
+            return remote_download_cache
         except ConanException:
             return None
 
@@ -508,7 +508,7 @@ class ConanClientConfigParser(ConfigParser, object):
         if short_paths_home:
             current_dir = os.path.dirname(os.path.normpath(os.path.normcase(self.filename)))
             short_paths_dir = os.path.normpath(os.path.normcase(short_paths_home))
-            if current_dir == short_paths_dir  or \
+            if current_dir == short_paths_dir or \
                     short_paths_dir.startswith(current_dir + os.path.sep):
                 raise ConanException("Short path home '{}' (defined by conan.conf variable "
                                      "'user_home_short', or environment variable "

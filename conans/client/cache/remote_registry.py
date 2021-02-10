@@ -110,6 +110,8 @@ class Remotes(object):
         result = Remotes()
         result._remotes["conan-center"] = Remote("conan-center", "https://conan.bintray.com", True,
                                                  False)
+        result._remotes["remote-cache"] = Remote("remote-cache", "https://conan-remote-cache.bintray.com", True,
+                                                 False)
         return result
 
     def select(self, remote_name):

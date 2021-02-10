@@ -5,7 +5,9 @@ from threading import Lock
 
 from six.moves.urllib_parse import urlsplit, urlunsplit
 
+from conans.client.cache.remote_registry import Remotes
 from conans.client.downloaders.file_downloader import check_checksum
+from conans.client.rest.file_uploader import FileUploader
 from conans.errors import ConanException
 from conans.util.files import mkdir
 from conans.util.locks import SimpleLock
@@ -15,15 +17,14 @@ from conans.util.sha import sha256 as sha256_sum
 class CachedFileDownloader(object):
     _thread_locks = {}  # Needs to be shared among all instances
 
-    def __init__(self, cache_folder="", cache_remote="", file_downloader, user_download=False):
-        self._cache_folder = cache_folder
-        self._cache_remote = cache_remote
+    def __init__(self, file_downloader, user_download=False):
         self._file_downloader = file_downloader
         self._user_download = user_download
+        self._cache_remote = Remotes().get_remote("remote-cache").url
 
     @contextmanager
     def _lock(self, lock_id):
-        lock = os.path.join(self._cache_folder, "locks", lock_id)
+        lock = os.path.join(self._cache_remote, "locks", lock_id)
         with SimpleLock(lock):
             # Once the process has access, make sure multithread is locked too
             # as SimpleLock doesn't work multithread
@@ -43,10 +44,12 @@ class CachedFileDownloader(object):
         h = self._get_hash(url, checksum)
 
         with self._lock(h):
-            cached_path = os.path.join(self._cache_folder, h)
+            # Change os.path.join and os.path.exists for the network equivalent
+            cached_path = os.path.join(self._cache_remote, h)
             if not os.path.exists(cached_path):
                 self._file_downloader.download(url=url, file_path=cached_path, md5=md5,
                                                sha1=sha1, sha256=sha256, **kwargs)
+                FileUploader().upload(self._cache_remote, h)
             else:
                 # specific check for corrupted cached files, will raise, but do nothing more
                 # user can report it or "rm -rf cache_folder/path/to/file"

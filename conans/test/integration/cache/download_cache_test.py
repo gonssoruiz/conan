@@ -30,9 +30,9 @@ class DownloadCacheTest(unittest.TestCase):
                      "header.h": "header"})
         client.run("create . mypkg/0.1@user/testing")
         client.run("upload * --all --confirm")
-        cache_folder = temp_folder()
+        use_cache = True
         log_trace_file = os.path.join(temp_folder(), "mylog.txt")
-        client.run('config set storage.download_cache="%s"' % cache_folder)
+        client.run('config set storage.use_download_cache="%d"' % use_cache)
         client.run('config set log.trace_file="%s"' % log_trace_file)
         client.run("remove * -f")
         client.run("install mypkg/0.1@user/testing")
@@ -50,7 +50,7 @@ class DownloadCacheTest(unittest.TestCase):
         self.assertIn("DOWNLOADED_PACKAGE", content)
 
         # removing the config downloads things
-        client.run('config rm storage.download_cache')
+        client.run('config rm storage.use_download_cache')
         os.remove(log_trace_file)
         client.run("remove * -f")
         client.run('config set log.trace_file="%s"' % log_trace_file)
@@ -61,7 +61,7 @@ class DownloadCacheTest(unittest.TestCase):
 
         # restoring config cache works again
         os.remove(log_trace_file)
-        client.run('config set storage.download_cache="%s"' % cache_folder)
+        client.run('config set storage.use_download_cache="%d"' % use_cache)
         client.run("remove * -f")
         client.run("install mypkg/0.1@user/testing")
         content = load(log_trace_file)
@@ -82,8 +82,8 @@ class DownloadCacheTest(unittest.TestCase):
                      "header.h": "header"})
         client.run("create . mypkg/0.1@user/testing")
         client.run("upload * --all --confirm")
-        cache_folder = temp_folder()
-        client.run('config set storage.download_cache="%s"' % cache_folder)
+        use_cache = True
+        client.run('config set storage.use_download_cache="%d"' % use_cache)
         client.run("remove * -f")
         client.run("install mypkg/0.1@user/testing")
         for f in os.listdir(cache_folder):
@@ -112,8 +112,8 @@ class DownloadCacheTest(unittest.TestCase):
         http_server.run_server()
 
         client = TestClient()
-        cache_folder = temp_folder()
-        client.run('config set storage.download_cache="%s"' % cache_folder)
+        use_cache = True
+        client.run('config set storage.download_cache="%d"' % use_cache)
         # badchecksums are not cached
         conanfile = textwrap.dedent("""
            from conans import ConanFile, tools
@@ -164,7 +164,7 @@ class DownloadCacheTest(unittest.TestCase):
         # disabling cache will make it fail
         os.remove(local_path)
         os.remove(local_path2)
-        client.run("config rm storage.download_cache")
+        client.run("config rm storage.use_download_cache")
         client.run("source .", assert_error=True)
         self.assertIn("ERROR: conanfile.py: Error in source() method, line 7", client.out)
         self.assertIn("Not found: http://localhost", client.out)
@@ -189,8 +189,8 @@ class DownloadCacheTest(unittest.TestCase):
 
         client2 = TestClient(servers=client.servers)
         client2.run("config set general.revisions_enabled=True")
-        cache_folder = temp_folder()
-        client2.run('config set storage.download_cache="%s"' % cache_folder)
+        use_cache = True
+        client2.run('config set storage.use_download_cache="%d"' % use_cache)
         client2.run("install mypkg/0.1@user/testing")
         self.assertEqual("header", client2.load("header.h"))
 

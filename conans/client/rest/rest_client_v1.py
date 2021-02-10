@@ -49,8 +49,8 @@ class RestV1Methods(RestCommonMethods):
         for filename, resource_url in sorted(file_urls.items(), reverse=True):
             auth, _ = self._file_server_capabilities(resource_url)
             md5 = snapshot_md5.get(filename, None) if snapshot_md5 else None
-            assert not self._config.download_cache or snapshot_md5, \
-                "if download_cache is set, we need the file checksums"
+            assert not self._config.use_download_cache or snapshot_md5, \
+                "if use_download_cache is set, we need the file checksums"
             contents = run_downloader(self.requester, None, self.verify_ssl, self._config,
                                       url=resource_url, auth=auth, md5=md5)
             yield os.path.normpath(filename), contents
@@ -73,7 +73,7 @@ class RestV1Methods(RestCommonMethods):
         url = self.router.recipe_manifest(ref)
         urls = self._get_file_to_url_dict(url)
 
-        md5s = self.get_recipe_snapshot(ref) if self._config.download_cache else None
+        md5s = self.get_recipe_snapshot(ref) if self._config.use_download_cache else None
         # Get the digest
         contents = self._download_files(urls, md5s)
         # Unroll generator and decode shas (plain text)
@@ -88,7 +88,7 @@ class RestV1Methods(RestCommonMethods):
         urls = self._get_file_to_url_dict(url)
 
         # Get the digest
-        md5s = self.get_package_snapshot(pref) if self._config.download_cache else None
+        md5s = self.get_package_snapshot(pref) if self._config.use_download_cache else None
         contents = self._download_files(urls, md5s)
         try:
             # Unroll generator and decode shas (plain text)
@@ -112,7 +112,7 @@ class RestV1Methods(RestCommonMethods):
         if CONANINFO not in urls:
             raise NotFoundException("Package %s doesn't have the %s file!" % (pref,
                                                                               CONANINFO))
-        md5s = self.get_package_snapshot(pref) if self._config.download_cache else None
+        md5s = self.get_package_snapshot(pref) if self._config.use_download_cache else None
         # Get the info (in memory)
         contents = self._download_files({CONANINFO: urls[CONANINFO]}, md5s)
         # Unroll generator and decode shas (plain text)
@@ -140,7 +140,7 @@ class RestV1Methods(RestCommonMethods):
         # Get the upload urls and then upload files
         url = self.router.package_upload_urls(pref)
         file_sizes = {filename: os.stat(abs_path).st_size for filename,
-                                                              abs_path in files_to_upload.items()}
+                      abs_path in files_to_upload.items()}
         logger.debug("Requesting upload urls...")
         urls = self._get_file_to_url_dict(url, data=file_sizes)
         if self._matrix_params:
@@ -192,7 +192,7 @@ class RestV1Methods(RestCommonMethods):
             auth, _ = self._file_server_capabilities(resource_url)
             abs_path = os.path.join(to_folder, filename)
             md5 = snapshot_md5.get(filename, None) if snapshot_md5 else None
-            assert not self._config.download_cache or snapshot_md5, \
+            assert not self._config.use_download_cache or snapshot_md5, \
                 "if download_cache is set, we need the file checksums"
             run_downloader(self.requester, self._output, self.verify_ssl, self._config,
                            url=resource_url, file_path=abs_path, auth=auth, md5=md5)
@@ -203,7 +203,7 @@ class RestV1Methods(RestCommonMethods):
         urls = self._get_recipe_urls(ref)
         urls.pop(EXPORT_SOURCES_TGZ_NAME, None)
         check_compressed_files(EXPORT_TGZ_NAME, urls)
-        md5s = self.get_recipe_snapshot(ref) if self._config.download_cache else None
+        md5s = self.get_recipe_snapshot(ref) if self._config.use_download_cache else None
         zipped_files = self._download_files_to_folder(urls, dest_folder, md5s)
         return zipped_files
 
@@ -213,7 +213,7 @@ class RestV1Methods(RestCommonMethods):
         if EXPORT_SOURCES_TGZ_NAME not in urls:
             return None
         urls = {EXPORT_SOURCES_TGZ_NAME: urls[EXPORT_SOURCES_TGZ_NAME]}
-        md5s = self.get_recipe_snapshot(ref) if self._config.download_cache else None
+        md5s = self.get_recipe_snapshot(ref) if self._config.use_download_cache else None
         zipped_files = self._download_files_to_folder(urls, dest_folder, md5s)
         return zipped_files
 
@@ -227,7 +227,7 @@ class RestV1Methods(RestCommonMethods):
     def get_package(self, pref, dest_folder):
         urls = self._get_package_urls(pref)
         check_compressed_files(PACKAGE_TGZ_NAME, urls)
-        md5s = self.get_package_snapshot(pref) if self._config.download_cache else None
+        md5s = self.get_package_snapshot(pref) if self._config.use_download_cache else None
         zipped_files = self._download_files_to_folder(urls, dest_folder, md5s)
         return zipped_files
 

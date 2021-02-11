@@ -24,6 +24,7 @@ class CachedFileDownloader(object):
 
     @contextmanager
     def _lock(self, lock_id):
+        # Change os.path.join for the network equivalent
         lock = os.path.join(self._cache_remote, "locks", lock_id)
         with SimpleLock(lock):
             # Once the process has access, make sure multithread is locked too
@@ -49,7 +50,9 @@ class CachedFileDownloader(object):
             if not os.path.exists(cached_path):
                 self._file_downloader.download(url=url, file_path=cached_path, md5=md5,
                                                sha1=sha1, sha256=sha256, **kwargs)
-                FileUploader().upload(self._cache_remote, h)
+                uploader = FileUploader(file_downloader._requester, file_downloader._output,
+                                        file_downloader._verify_ssl, file_downloader._config)
+                uploader.upload(self._cache_remote, h)
             else:
                 # specific check for corrupted cached files, will raise, but do nothing more
                 # user can report it or "rm -rf cache_folder/path/to/file"
